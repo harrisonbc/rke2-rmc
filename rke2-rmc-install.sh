@@ -145,6 +145,14 @@ echo
 echo "RKE2 Cluster up and running."
 kubectl get nodes
 
+
+# Finally we can install Rancher
+echo 
+echo "Install Rancher onto Cluster."
+helm repo add rancher https://releases.rancher.com/server-charts/latest
+helm repo update
+kubectl create namespace cattle-system
+
 # We now install Cert Manager if using rancher-signed certificates
 
 echo 
@@ -160,18 +168,34 @@ helm upgrade --install cert-manager jetstack/cert-manager \
 kubectl rollout status deployment -n cert-manager cert-manager
 kubectl rollout status deployment -n cert-manager cert-manager-webhook
 
-
-# Finally we can install Rancher
-echo 
-echo "Install Rancher onto Cluster."
-helm repo add rancher https://releases.rancher.com/server-charts/latest
-helm repo update
-kubectl create namespace cattle-system
-
 helm upgrade --install rancher rancher/rancher \
    --namespace cattle-system \
    --set bootstrapPassword="$RANCHER_BOOTSTRAP_PASSWORD" \
    --set hostname=$CLUSTERNAME
+
+## If using provided ingress certificates, create tls-rancher-ingress
+# kubectl -n cattle-system create secret tls tls-rancher-ingress \
+#  --cert=tls.cer \
+#  --key=tls.key
+#
+# helm upgrade --install rancher rancher/rancher \
+#   --namespace cattle-system \
+#   --set bootstrapPassword="$RANCHER_BOOTSTRAP_PASSWORD" \
+#   --set hostname=$CLUSTERNAME \
+#   --set ingress.tls.source=secret
+#
+## If using Private CA, add the Private CA Signed Certificate:
+#
+# kubectl -n cattle-system create secret generic tls-ca \
+# --from-file=cacerts.pem
+#
+# helm upgrade --install rancher rancher/rancher \
+#   --namespace cattle-system \
+#   --set bootstrapPassword="$RANCHER_BOOTSTRAP_PASSWORD" \
+#   --set hostname=$CLUSTERNAME \
+#   --set ingress.tls.source=secret \
+#   --set privateCA=true   
+#
 
 kubectl rollout status deployment/rancher -n cattle-system
 
