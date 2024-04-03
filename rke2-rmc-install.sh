@@ -149,6 +149,7 @@ kubectl get nodes
 # Finally we can install Rancher
 echo 
 echo "Install Rancher onto Cluster."
+#helm repo add rancher-prime https://charts.rancher.com/server-charts/prime
 helm repo add rancher https://releases.rancher.com/server-charts/latest
 helm repo update
 kubectl create namespace cattle-system
@@ -198,11 +199,3 @@ helm upgrade --install rancher rancher/rancher \
 #
 
 kubectl rollout status deployment/rancher -n cattle-system
-
-
-
-
-
-
-
-
